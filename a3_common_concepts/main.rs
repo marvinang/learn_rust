@@ -34,7 +34,7 @@ space = spaces.len(); // error
 整型：
 i8 u8
 i16 u16
-i32 u32
+i32(defautl) u32
 i64 u64
 i128 u128
 isize usize // 64位机器64bit, 32位机器32bit
@@ -48,17 +48,26 @@ Binary   0b1111_0000
 Byte(u8 only) b'A'
 
 浮点型
-
+f32
+f64 (default)
 
 布尔型
+一个byte
+true false
 
 字符型
+表示一个unicode标量
+4 bytes4
 
-
-符合类型
+复合类型
 Tuple
+元组的大小是固定的，声明后不能修改
 
 Array
+array中的数据必须是同一类型
+array大小也是固定的，不像其他语言
+array在栈上分配内存
+
 
 
 
@@ -73,6 +82,7 @@ Array
 */
 
 fn variabels() {
+    println!("\n\n=============== variabels begin =============");
     let a = 123;
     println!("the valule is {}", a);
     // a = 30; error
@@ -95,6 +105,49 @@ fn variabels() {
     let x = x + 1;
     let x = x * 2;
     println!("the value of x is: {}", x);
+
+    let y = 2.0; // f64
+    let x: f32 = 10.1; //f32
+
+    let t = true;
+    let f: bool = false;
+
+    let c = 'z';
+    let z = 'Z';
+    let heart_eyed_cat = '😻';
+
+    // tuple中可以是不同类型
+    let tup: (i32, f32, u8) = (500, 6.4, 1);
+    // 使用模式匹配可以或者tuple的单个值
+    let (x, y, z) = tup;
+    println!("the value of y is: {}", y);
+    // 使用.和索引
+    let t1 = tup.0;
+    let t3 = tup.2;
+
+    let arr = [1, 2, 3, 4, 5, 6];
+    let months = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+    ];
+    // 显示类型
+    let array: [i32; 5] = [1, 2, 3, 4, 10];
+    // 值
+    let array = [3; 5];
+    // [3,3,3,3,3]
+    println!("the value of array is {:?}", array);
+
+    println!("=============== variabels end =============\n\n\n");
 }
 
 fn func() {
