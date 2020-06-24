@@ -1,0 +1,20 @@
+[package]
+name = "learn_rust"
+version = "0.1.0"
+authors = ["yangminyu <yangminyu@gosun.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+
+[workspace]
+members = [
+  "a1_started",
+  "a2_guessing_game",
+  "a3_common_concepts",
+  "a4_owership"
+
+]
+
