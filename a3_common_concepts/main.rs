@@ -70,13 +70,16 @@ array在栈上分配内存
 
 
 
-
-
 方法
 
 注释
 
 控制流
+if expresson
+loop
+while
+for in
+
 
 
 */
@@ -116,6 +119,7 @@ fn variabels() {
     let z = 'Z';
     let heart_eyed_cat = '😻';
 
+    let tup = (100, 2.5, -80);
     // tuple中可以是不同类型
     let tup: (i32, f32, u8) = (500, 6.4, 1);
     // 使用模式匹配可以或者tuple的单个值
@@ -146,12 +150,19 @@ fn variabels() {
     let array = [3; 5];
     // [3,3,3,3,3]
     println!("the value of array is {:?}", array);
+    // 读取array元素
+    let array = [1,2,3,4,5];
+    let first = array[0];
+    let second = array[1];
+    println!("first={} sencond={}", first, second);
+    // let out_index = array[10];
 
     println!("=============== variabels end =============\n\n\n");
 }
 
-fn func() {
-    println!("Hello, func");
+// rust使用snake case作为参数和函数名 
+fn another_func() {
+    println!("Hello, another_func");
 }
 
 // 参数
@@ -161,15 +172,23 @@ fn hello(x: i32, y: i32) {
 }
 
 // 返回值
+// rust函数隐式地返回最后一个表达式的值作为函数返回值，可以不加return
 fn add(a: i32, b: i32) -> i32 {
-    return a + b;
+    // return a + b;
+    a + b // 不加 ";"
 }
 
-fn main() {
-    variabels();
-    func();
-    hello(10, 11);
-
+// rust是基于表达式的语言，
+// Statements 没有返回值， 而Expressions有返回值
+// let x= (let y = 6); //error
+// Expression 有以下几种
+// 1. 计算表达式， let x = 4+5; let y = 6;
+// 2. 函数调用， func();
+// 3. 宏调用， println!();
+// 4. {}块是也表达式
+fn functions() {
+    println!("\n\n\n=============== functions bengin =============");
+    // let x = (let y = 8);
     let x = 5;
     // 语句块, 函数体表达式
     let y = {
@@ -178,6 +197,9 @@ fn main() {
         x + 1
     };
     hello(x, y);
+    // 函数调用
+    another_func();
+    hello(10, 11);
 
     // 嵌套的函数
     fn five() -> i32 {
@@ -185,4 +207,24 @@ fn main() {
     }
     println!("five() 的值 {}", five());
     println!("add(3, 2) = {}", add(3, 2));
+
+
+    println!("=============== functions end ================\n\n\n");
+}
+
+// 注释
+fn comments() {
+  // line comments
+  let a = 10; // end line commets
+  /*
+   * block comments
+   */
+  // annotation
+  let lucky_number = 1;
+}
+
+fn main() {
+    variabels();
+    functions();
+    comments();
 }
