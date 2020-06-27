@@ -17,7 +17,6 @@
 // 如果你的变量刚开始是空值，你体谅一下编译器，
 // 它怎么知道值不为空的时候变量是什么类型的呢？
 // 所以初始值为空的 Option 必须明确类型：
-
 fn option_func() {
     // let opt = Option::Some("Hello");
     let opt: Option<&str> = Option::None;
@@ -69,9 +68,7 @@ fn if_let() {
 
 
 fn main() {
-
     option_func();
     option_match();
-
     if_let();
 }
