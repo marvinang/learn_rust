@@ -15,7 +15,7 @@ members = [
   "a2_guessing_game",
   "a3_common_concepts",
   "a4_ownership",
-  "a5_structs"
-
+  "a5_structs",
+  "a6_enums_match"
 ]
 
