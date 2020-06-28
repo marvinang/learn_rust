@@ -79,7 +79,6 @@ mod nation {
 
 // 如果模块中定义了结构体，结构体除了其本身是私有的以外，其字段也默认是私有的。
 // 所以如果想使用模块中的结构体以及其字段，需要 pub 声明：
-
 mod back_of_house {
     pub struct Breakfast {
         pub toast: String,
