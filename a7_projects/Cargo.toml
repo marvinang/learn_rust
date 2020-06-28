@@ -1,5 +1,5 @@
 [package]
-name = "learn_rust"
+name = "a7_projects"
 version = "0.1.0"
 authors = ["yangminyu <yangminyu@gosun.com>"]
 edition = "2018"
@@ -8,15 +8,10 @@ edition = "2018"
 
 [dependencies]
 
+[[bin]]
+name = "a7_projects"
+path = "src/main.rs"
 
-[workspace]
-members = [
-  "a1_started",
-  "a2_guessing_game",
-  "a3_common_concepts",
-  "a4_ownership",
-  "a5_structs",
-  "a6_enums_match",
-  "a7_projects"
-]
-
+[lib]
+name = "a7_projects"
+path = "src/lib.rs"
