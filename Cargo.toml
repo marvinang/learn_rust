@@ -17,6 +17,7 @@ members = [
   "a4_ownership",
   "a5_structs",
   "a6_enums_match",
-  "a7_projects"
+  "a7_projects",
+  "a8_common_collections"
 ]
 
