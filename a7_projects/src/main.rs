@@ -29,7 +29,8 @@ cargo在编译的时候会把crate root files传递给rustc进行编译。
 
 模块（Module）
 Modules使我们可以将一个箱中的代码组织成组，提高可读性和重用性，modules也控制items的访问控制。(public vs private)
-对于一个软件工程来说，我们往往按照所使用的编程语言的组织规范来进行组织，组织模块的主要结构往往是树。Java 组织功能模块的主要单位是类，而 JavaScript 组织模块的主要方式是 function。
+对于一个软件工程来说，我们往往按照所使用的编程语言的组织规范来进行组织，组织模块的主要结构往往是树。
+Java 组织功能模块的主要单位是类，而 JavaScript 组织模块的主要方式是 function。
 这些先进的语言的组织单位可以层层包含，就像文件系统的目录结构一样。Rust 中的组织单位是模块（Module）。
 
 
