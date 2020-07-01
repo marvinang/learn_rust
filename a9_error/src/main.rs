@@ -10,6 +10,13 @@ recoverable and unrecoverable
 大多数编程语言不区分这两种错误，并用 Exception （异常）类来表示错误。在 Rust 中没有 Exception。
 对于可恢复错误用 Result<T, E> 类来处理，对于不可恢复错误使用 panic! 宏来处理。
 
+
+to panic! or not to panic!
+当发生panics时没有任何办法恢复运行。
+1. 一般情况，当函数可能失败时，返回Result总是一个好的选择 
+2. 但在一些情况下，panic!可能闭Result更好一点，比如examples, prototypecode, tests等。
+
+
 */
 
 // 可以加  RUST_BACKTRACE=1 参数来打印异常栈
@@ -67,6 +74,23 @@ fn match_error_kind() {
             other_error => panic!("Problem opening the file: {:?}", other_error),
         },
     };
+}
+
+// 使用closures简化以上过程
+// Result<T, E>类型有许多接受闭包并使用match表达式的方法
+use std::fs::OpenOptions;
+fn match_error_closure() {
+    // let f = File::open("hello.txt").unwrap_or_else(|error| {
+    let f = OpenOptions::new().append(true).open("hello.txt").unwrap_or_else(|error| {
+        if error.kind() == ErrorKind::NotFound {
+            File::create("hello.txt").unwrap_or_else(|error| {
+                panic!("Problem creating the file: {:?}", error);
+            })
+        } else {
+            panic!("Problem opening the file {:?}", error);
+        }
+    });
+    println!("{:?}", f);
 }
 
 // 使用 if let 简化
@@ -127,6 +151,36 @@ fn g(i: i32) -> Result<i32, bool> {
     Ok(t) // 因为确定 t 不是 Err, t 在这里已经是 i32 类型
 }
 
+
+// 官方例子
+use std::io;
+use std::io::Read;
+fn read_username_from_file() -> Result<String, io::Error> {
+  let f = File::open("hello.txt");
+  let mut f = match f {
+    Ok(file) => file,
+    Err(e) => return Err(e),
+  };
+  let mut s = String::new();
+  match f.read_to_string(&mut s) {
+    Ok(_) => Ok(s),
+    Err(e) => Err(e),
+  }
+}
+
+use std::fs;
+fn read_username_from_file_short() -> Result<String, io::Error> {
+  // let mut f = File::open("hello.txt")?;
+  // let mut s = String::new();
+  // f.read_to_string(&mut s)?;
+  // more short
+  // let mut s = String::new();
+  // File::open("hello.txt")?.read_to_string(&mut s)?;
+  // Ok(s)
+  // enve short
+  fs::read_to_string("hello.txt")
+}
+
 // kind 方法
 /*
 Rust 似乎没有像 try 块一样可以令任何位置发生的同类异常都直接得到相同的解决的语法，
@@ -136,10 +190,6 @@ Rust 似乎没有像 try 块一样可以令任何位置发生的同类异常都�
 
 但是这样需要判断 Result 的 Err 类型，获取 Err 类型的函数是 kind()。
 */
-
-use std::io;
-use std::io::Read;
-
 fn read_text_from_file(path: &str) -> Result<String, io::Error> {
     let mut f = File::open(path)?;
     let mut s = String::new();
@@ -162,16 +212,24 @@ fn deal_good() {
     }
 }
 
-fn main() {
-    // panic_error();
-    deal_file();
-    match_error_kind();
-    // deal_file_2();
-
-    // deal_file_error();
-
-    // deliver_error(10);
-    // deliver_error(-1);
-
-    // deal_good();
+// main返回Result
+use std::error::Error;
+fn main() -> Result<(), Box<dyn Error>> {
+  let f = File::open("hello.txt")?;
+  Ok(())
 }
+
+// fn main() {
+//     // panic_error();
+//     // deal_file();
+//     // match_error_kind();
+//     match_error_closure();
+//     // deal_file_2();
+// 
+//     // deal_file_error();
+// 
+//     // deliver_error(10);
+//     // deliver_error(-1);
+// 
+//     // deal_good();
+// }
