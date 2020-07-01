@@ -29,7 +29,7 @@ fn get_word_2() {
     let mut s = String::from("hello world");
     let first = get_first_word(&s);
     s.clear(); // borrow the ownership here
-    // println!("first world is {}", first); // error
+               // println!("first world is {}", first); // error
 }
 
 // &str 为”String slice" 类型
@@ -62,27 +62,27 @@ fn string_slice() {
 
 // 字符串字面量是Slice类型
 fn str_slice() {
-  // type of s here is &str
-  // &str是一个指向特定的二进制
-  // 这也是为什么字符串字面量不能修改的原因，&str是一个不可变引用
-  let s = "Hello, world";
-  let s1 = String::from("heloo");
+    // type of s here is &str
+    // &str是一个指向特定的二进制
+    // 这也是为什么字符串字面量不能修改的原因，&str是一个不可变引用
+    let s = "Hello, world";
+    let s1 = String::from("heloo");
 
-  let r1 = first_word_improvement(&s1);
-  let r2 = first_word_improvement(s);
-  println!("==== {}, {}", r1, r2);
-  
+    let r1 = first_word_improvement(&s1);
+    let r2 = first_word_improvement(s);
+    println!("==== {}, {}", r1, r2);
 }
 
 // 既可以接受 &String, 也可以接受 &str
+// 编译器会自动转换
 fn first_word_improvement(s: &str) -> &str {
-  let bytes = s.as_bytes();
-  for (i, &item) in bytes.iter().enumerate() {
-    if item == b' ' {
-      return &s[..i];
+    let bytes = s.as_bytes();
+    for (i, &item) in bytes.iter().enumerate() {
+        if item == b' ' {
+            return &s[..i];
+        }
     }
-  }
-  &s[..]
+    &s[..]
 }
 
 // 非字符串切片
