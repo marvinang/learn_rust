@@ -2,6 +2,7 @@
 错误处理
 
 Rust 有一套独特的处理异常情况的机制，它并不像其它语言中的 try 机制那样简单。
+recoverable and unrecoverable
 首先，程序中一般会出现两种错误：可恢复错误和不可恢复错误。
 可恢复错误的典型案例是文件访问错误，如果访问一个文件失败，有可能是因为它正在被占用，是正常的，我们可以通过等待来解决。
 
@@ -11,8 +12,14 @@ Rust 有一套独特的处理异常情况的机制，它并不像其它语言中
 
 */
 
+// 可以加  RUST_BACKTRACE=1 参数来打印异常栈
 
 // 不可恢复错误
+// panic!宏执行时，程序打印一个失败消息，释放和清理栈空间，然后退出程序。
+// 如果不想程序进行清理工作，要直接abort，让操作系统来清理空间。
+// 可以在Cargo.toml文件里加上如下片段:
+// [profile.release]
+// panic = "abort"
 fn panic_error() {
     panic!("error occured");
     println!("Hello, Rust");
@@ -32,15 +39,34 @@ enum Result<T, E> {
 
 use std::fs::File;
 fn deal_file() {
+    // 不必关闭f, rust会自动清理
     let f = File::open("hello.txt");
+    // 这里不需要写 Result::Ok(file), 因为Result Enum已经被prelude引入了
     match f {
         Ok(file) => {
-            println!("file opened successfully.");
-        },
+            println!("file {:?} opened successfully.", file);
+        }
         Err(err) => {
             println!("file opened failed.");
+            panic!("Problem opening the file: {:?}", err);
         }
     }
+}
+
+// match 不同的错误类型
+use std::io::ErrorKind;
+fn match_error_kind() {
+    let f = File::open("hello.txt");
+    let f = match f {
+        Ok(file) => file,
+        Err(error) => match error.kind() {
+            ErrorKind::NotFound => match File::create("hello.txt") {
+                Ok(fc) => fc,
+                Err(e) => panic!("Problem creating the file: {:?}", e),
+            },
+            other_error => panic!("Problem opening the file: {:?}", other_error),
+        },
+    };
 }
 
 // 使用 if let 简化
@@ -63,7 +89,6 @@ fn deal_file_error() {
     let f2 = File::open("hello.txt").expect("Failed to open.");
 }
 
-
 // 可恢复的错误的传递
 // 之前所讲的是接收到错误的处理方式，但是如果我们自己编写一个函数在遇到错误时想传递出去怎么办呢？
 fn deliver_error(i: i32) {
@@ -76,8 +101,11 @@ fn deliver_error(i: i32) {
 }
 
 fn f(i: i32) -> Result<i32, bool> {
-    if i >= 0 { Ok(i) }
-    else { Err(false) }
+    if i >= 0 {
+        Ok(i)
+    } else {
+        Err(false)
+    }
 }
 
 // 函数 g 传递了函数 f 可能出现的错误（这里的 g 只是一个简单的例子，
@@ -86,7 +114,7 @@ fn g1(i: i32) -> Result<i32, bool> {
     let t = f(i);
     return match t {
         Ok(i) => Ok(i),
-        Err(b) => Err(b)
+        Err(b) => Err(b),
     };
 }
 
@@ -123,30 +151,27 @@ fn deal_good() {
     let str_file = read_text_from_file("hello.txt");
     match str_file {
         Ok(s) => println!("{}", s),
-        Err(e) => {
-            match e.kind() {
-                io::ErrorKind::NotFound => {
-                    println!("No such file");
-                },
-                _ => {
-                    println!("Cannot read the file");
-                }
+        Err(e) => match e.kind() {
+            io::ErrorKind::NotFound => {
+                println!("No such file");
             }
-        }
+            _ => {
+                println!("Cannot read the file");
+            }
+        },
     }
 }
 
 fn main() {
-    // deal_file();
     // panic_error();
+    deal_file();
+    match_error_kind();
     // deal_file_2();
-    
+
     // deal_file_error();
 
     // deliver_error(10);
     // deliver_error(-1);
 
-    deal_good();
-
+    // deal_good();
 }
-
