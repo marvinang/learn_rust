@@ -13,9 +13,20 @@ recoverable and unrecoverable
 
 to panic! or not to panic!
 当发生panics时没有任何办法恢复运行。
-1. 一般情况，当函数可能失败时，返回Result总是一个好的选择 
+1. 一般情况，当函数可能失败时，返回Result总是一个好的选择
 2. 但在一些情况下，panic!可能闭Result更好一点，比如examples, prototypecode, tests等。
 
+错误处理建议：
+如果代码最终会陷入错误的状态，建议panic。
+错误状态是指：
+1. 错误状态并不是偶然发生的。
+2. 在这个点后，你的代码需要依赖不处理这种错误状态（状态必须是正确的）。
+3. 没有更好的办法把这个信息编码成你使用的类型。
+
+那些情况需要panic:
+1. 为别人提供库时，传入错误参数应该panic, 可以使对方在开发时就可以纠正错误。
+2. 当你调用别人的代码时返回了一个无效的状态，并且不受你控制时，panic是合适的。
+3. 如果失败是可以预见的，则应该适应Result而不是panic
 
 */
 
@@ -81,15 +92,18 @@ fn match_error_kind() {
 use std::fs::OpenOptions;
 fn match_error_closure() {
     // let f = File::open("hello.txt").unwrap_or_else(|error| {
-    let f = OpenOptions::new().append(true).open("hello.txt").unwrap_or_else(|error| {
-        if error.kind() == ErrorKind::NotFound {
-            File::create("hello.txt").unwrap_or_else(|error| {
-                panic!("Problem creating the file: {:?}", error);
-            })
-        } else {
-            panic!("Problem opening the file {:?}", error);
-        }
-    });
+    let f = OpenOptions::new()
+        .append(true)
+        .open("hello.txt")
+        .unwrap_or_else(|error| {
+            if error.kind() == ErrorKind::NotFound {
+                File::create("hello.txt").unwrap_or_else(|error| {
+                    panic!("Problem creating the file: {:?}", error);
+                })
+            } else {
+                panic!("Problem opening the file {:?}", error);
+            }
+        });
     println!("{:?}", f);
 }
 
@@ -151,34 +165,33 @@ fn g(i: i32) -> Result<i32, bool> {
     Ok(t) // 因为确定 t 不是 Err, t 在这里已经是 i32 类型
 }
 
-
 // 官方例子
 use std::io;
 use std::io::Read;
 fn read_username_from_file() -> Result<String, io::Error> {
-  let f = File::open("hello.txt");
-  let mut f = match f {
-    Ok(file) => file,
-    Err(e) => return Err(e),
-  };
-  let mut s = String::new();
-  match f.read_to_string(&mut s) {
-    Ok(_) => Ok(s),
-    Err(e) => Err(e),
-  }
+    let f = File::open("hello.txt");
+    let mut f = match f {
+        Ok(file) => file,
+        Err(e) => return Err(e),
+    };
+    let mut s = String::new();
+    match f.read_to_string(&mut s) {
+        Ok(_) => Ok(s),
+        Err(e) => Err(e),
+    }
 }
 
 use std::fs;
 fn read_username_from_file_short() -> Result<String, io::Error> {
-  // let mut f = File::open("hello.txt")?;
-  // let mut s = String::new();
-  // f.read_to_string(&mut s)?;
-  // more short
-  // let mut s = String::new();
-  // File::open("hello.txt")?.read_to_string(&mut s)?;
-  // Ok(s)
-  // enve short
-  fs::read_to_string("hello.txt")
+    // let mut f = File::open("hello.txt")?;
+    // let mut s = String::new();
+    // f.read_to_string(&mut s)?;
+    // more short
+    // let mut s = String::new();
+    // File::open("hello.txt")?.read_to_string(&mut s)?;
+    // Ok(s)
+    // enve short
+    fs::read_to_string("hello.txt")
 }
 
 // kind 方法
@@ -215,8 +228,28 @@ fn deal_good() {
 // main返回Result
 use std::error::Error;
 fn main() -> Result<(), Box<dyn Error>> {
-  let f = File::open("hello.txt")?;
-  Ok(())
+    let f = File::open("hello.txt")?;
+    Ok(())
+}
+
+// 校验参数有效性
+// 如果许多地方都对某个参数校验有效性，如果每次都去重复校验会很繁琐。
+// 我们可以定义一个新的类型，并且可是把验证放入函数中创建该类型的实例，
+// 而不是每次都去校验它。
+pub struct Guess {
+    value: i32,
+}
+
+impl Guess {
+    pub fn new(value: i32) -> Guess {
+        if value < 1 || value > 100 {
+            panic!("guess value must be between 1 and 100, got {}", value);
+        }
+        Guess { value }
+    }
+    pub fn value(&self) -> i32 {
+        self.value
+    }
 }
 
 // fn main() {
@@ -225,11 +258,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 //     // match_error_kind();
 //     match_error_closure();
 //     // deal_file_2();
-// 
+//
 //     // deal_file_error();
-// 
+//
 //     // deliver_error(10);
 //     // deliver_error(-1);
-// 
+//
 //     // deal_good();
 // }
