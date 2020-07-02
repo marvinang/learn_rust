@@ -1,19 +1,27 @@
 
-// 泛型与特性
+// 泛型与特性和生命周期
+// Generic Types, Traits, Lifetimes
+
+
+
+
+// 泛型是为了解决代码的重复问题，提高代码可用性的一种方法
 
 
 // 函数中定义泛型
-// fn max<T>(array: &[T]) -> T {
-//     let mut max_index = 0;
-//     let mut i = 1;
-//     while i < array.len() {
-//         if array[i] > array[max_index] {
-//             max_index = i;
-//         }
-//         i += 1;
-//     }
-//     array[max_index]
-// }
+// 使用泛型参数时，需要在函数名和参数列表之间声明参数类型，用<>包住。
+//
+fn max<T>(array: &[T]) -> T {
+     let mut max_index = 0;
+     let mut i = 1;
+     while i < array.len() {
+         if array[i] > array[max_index] {
+             max_index = i;
+         }
+         i += 1;
+     }
+     array[max_index]
+ }
 
 
 // 结构体与枚举类中的泛型

@@ -19,6 +19,7 @@ members = [
   "a6_enums_match",
   "a7_projects",
   "a8_common_collections",
-  "a9_error"
+  "a9_error",
+  "a10_generic_traits_lifetime"
 ]
 
