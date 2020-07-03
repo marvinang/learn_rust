@@ -28,26 +28,41 @@ impl Comparable for f64 {
     }
 }
 
-//================================= 官网 =========================
-// fn largest<T: PartialOrd + Copy>(list: &[T]) -> T {
-//     let mut largest = list[0];
-//     for &item in list {
-//         if item > largest {
-//             largest = item;
-//         }
-//     }
-//     largest
-// }
-
-// 返回&T
-fn largest<T>(list: &[T]) -> &T {
-    let mut largest = &list[0];
+// ================================= 官网 =========================
+fn largest<T: PartialOrd + Copy>(list: &[T]) -> T {
+    let mut largest = list[0];
     for &item in list {
-        if item > *largest {
-            largest = &item;
+        if item > largest {
+            largest = item;
         }
     }
     largest
+}
+
+// ========================== 使用Trait Bounds来选择性的实现方法 ===============
+use std::fmt::Display;
+
+struct Pair<T> {
+    x: T,
+    y: T,
+}
+
+impl<T> Pair<T> {
+    fn new(x: T, y: T) -> Self {
+        Self { x, y }
+    }
+}
+
+// 这里cmp_display只接受实现了Display+PartialOrd的实例
+// 满足特质范围的任何类型的特质的实现称为毯子实现(blanket implementation)，并在Rust标准库中广泛使用
+impl<T: Display + PartialOrd> Pair<T> {
+    fn cmp_display(&self) {
+        if self.x > self.y {
+            println!("the largest member is x = {}", self.x);
+        } else {
+            println!("the largest member is y = {}", self.y);
+        }
+    }
 }
 
 fn main() {

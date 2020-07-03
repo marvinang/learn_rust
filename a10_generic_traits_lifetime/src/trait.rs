@@ -60,6 +60,8 @@ fn notify(item: &impl Summary) {
 }
 
 // 可以使用 Trait Bound语法简化上面的方法， 其实是impl trait的语法糖。
+// Traits和Trait
+// Bounds语法可以让我们的代码使用泛型来减少重复，也向编译器指定所需要的泛型必须满足一定的特性（方法）。
 fn notify_1<T: Summary>(item: &T) {
     println!("Breaking news! {}", item.summarize());
 }
@@ -68,11 +70,13 @@ fn notify_1<T: Summary>(item: &T) {
 fn notify_2(item: &(impl Summary + Display)) {}
 fn notify_3<T: Summary + Display>(item: &T) {}
 
+use std::clone::Clone;
+use std::fmt::{Debug, Display};
 // 使用where子句使结构更加清晰
 fn some_function<T: Display + Clone, U: Clone + Debug>(t: &T, u: &U) -> i32 {
     10
 }
-fn some_function<T, U>(t: &T, u: &U) -> i32
+fn some_function_1<T, U>(t: &T, u: &U) -> i32
 where
     T: Display + Clone,
     U: Clone + Debug,
@@ -91,26 +95,26 @@ fn returns_summarizable() -> impl Summary {
     }
 }
 // 但是只能返回同一种具体类类型
-fn returns_summarizable_1(switch: bool) -> impl Summary {
-    if switch {
-        NewsArticle {
-            headline: String::from("Penguins win the Stanley Cup Championship!"),
-            location: String::from("Pittsburgh, PA, USA"),
-            author: String::from("Iceburgh"),
-            content: String::from(
-                "The Pittsburgh Penguins once again are the best \
-                 hockey team in the NHL.",
-            ),
-        }
-    } else {
-        Tweet {
-            username: String::from("horse_ebooks"),
-            content: String::from("of course, as you probably already know, people"),
-            reply: false,
-            retweet: false,
-        }
-    }
-}
+// fn returns_summarizable_1(switch: bool) -> impl Summary {
+//     if switch {
+//         news::NewsArticle {
+//             headline: String::from("Penguins win the Stanley Cup Championship!"),
+//             location: String::from("Pittsburgh, PA, USA"),
+//             author: String::from("Iceburgh"),
+//             content: String::from(
+//                 "The Pittsburgh Penguins once again are the best \
+//                  hockey team in the NHL.",
+//             ),
+//         }
+//     } else {
+//         news::Tweet {
+//             username: String::from("horse_ebooks"),
+//             content: String::from("of course, as you probably already know, people"),
+//             reply: false,
+//             retweet: false,
+//         }
+//     }
+// }
 
 fn main() {
     returns_summarizable();
