@@ -5,6 +5,10 @@ name = "a10_generic_traits_lifetime"
 version = "0.1.0"
 
 [[package]]
+name = "a11_tests"
+version = "0.1.0"
+
+[[package]]
 name = "a1_started"
 version = "0.1.0"
 

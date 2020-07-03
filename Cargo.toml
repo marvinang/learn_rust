@@ -20,6 +20,7 @@ members = [
   "a7_projects",
   "a8_common_collections",
   "a9_error",
-  "a10_generic_traits_lifetime"
+  "a10_generic_traits_lifetime",
+  "a11_tests"
 ]
 
