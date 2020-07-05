@@ -245,8 +245,22 @@ mod tests_9 {
 // 集成测试目录在根目录的 tests文件夹下
 // 集成测试可以指定单独的crate
 // cargo test --test integration_test
+// 集成测试不需要标注#[cfg(test)]
+
+//============================= 集成测试中的子模块 ==========
+// 每个tests目录中的文件都被编译为单独的crate文件
+// 可以将共享函数提取到 tests/common.rs中，但是common.rs会显示在测试结果中，
+// 可以创建 tests/common/mod.rs, 而不是tests/common.rs, 这种rust的命名规范告诉
+// rust不要将common看作一个集成测试文件。
+// 结论: tests目录中的子目录不会被作为单独的crate编译或作为一个测试结果部分
+// 出现在测试输出中。
+//
 
 
+//====================== 二进制crate的集成测试 =========
+// 如果只有src/main.rs 而没有 src/lib.rs, 就不可能在tests目录中创建集成测试并使用
+// use导入src/main.rs中定义的函数。只有库crate才会向其他crate暴露了可供
+// 调用的函数; 二进制crate只在单独运行。
 
 
 
