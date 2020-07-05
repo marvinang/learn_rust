@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 a11_tests = {path="./a11_tests"}
-
+a12_command_line = {path = "./a12_command_line"}
 
 [workspace]
 members = [
@@ -22,6 +22,7 @@ members = [
   "a8_common_collections",
   "a9_error",
   "a10_generic_traits_lifetime",
-  "a11_tests"
+  "a11_tests",
+  "a12_command_line"
 ]
 

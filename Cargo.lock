@@ -9,6 +9,10 @@ name = "a11_tests"
 version = "0.1.0"
 
 [[package]]
+name = "a12_command_line"
+version = "0.1.0"
+
+[[package]]
 name = "a1_started"
 version = "0.1.0"
 
@@ -73,6 +77,7 @@ name = "learn_rust"
 version = "0.1.0"
 dependencies = [
  "a11_tests 0.1.0",
+ "a12_command_line 0.1.0",
 ]
 
 [[package]]
