@@ -13,6 +13,10 @@ name = "a12_command_line"
 version = "0.1.0"
 
 [[package]]
+name = "a13_functional"
+version = "0.1.0"
+
+[[package]]
 name = "a1_started"
 version = "0.1.0"
 

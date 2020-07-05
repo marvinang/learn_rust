@@ -23,6 +23,8 @@ members = [
   "a9_error",
   "a10_generic_traits_lifetime",
   "a11_tests",
-  "a12_command_line"
+  "a12_command_line",
+  "a13_functional"
+
 ]
 
