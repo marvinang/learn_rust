@@ -71,6 +71,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "learn_rust"
 version = "0.1.0"
+dependencies = [
+ "a11_tests 0.1.0",
+]
 
 [[package]]
 name = "libc"
