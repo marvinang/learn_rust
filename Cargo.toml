@@ -25,7 +25,10 @@ members = [
   "a11_tests",
   "a12_command_line",
   "a13_functional",
-  "a14_cargo_crates"
+  "a14_cargo_crates",
+  "a15_pointers",
+  "a16_concurrency",
+  "a17_OOP"
 
 ]
 
