@@ -21,6 +21,18 @@ name = "a14_cargo_crates"
 version = "0.1.0"
 
 [[package]]
+name = "a15_pointers"
+version = "0.1.0"
+
+[[package]]
+name = "a16_concurrency"
+version = "0.1.0"
+
+[[package]]
+name = "a17_OOP"
+version = "0.1.0"
+
+[[package]]
 name = "a1_started"
 version = "0.1.0"
 
