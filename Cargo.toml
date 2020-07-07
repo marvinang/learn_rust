@@ -28,7 +28,7 @@ members = [
   "a14_cargo_crates",
   "a15_pointers",
   "a16_concurrency",
-  "a17_OOP"
-
+  "a17_OOP",
+  "a21_appendix"
 ]
 

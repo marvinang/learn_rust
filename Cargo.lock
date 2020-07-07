@@ -37,6 +37,10 @@ name = "a1_started"
 version = "0.1.0"
 
 [[package]]
+name = "a21_appendix"
+version = "0.1.0"
+
+[[package]]
 name = "a2_guessing_game"
 version = "0.1.0"
 dependencies = [
