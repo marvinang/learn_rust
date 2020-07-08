@@ -29,7 +29,7 @@ name = "a16_concurrency"
 version = "0.1.0"
 
 [[package]]
-name = "a17_OOP"
+name = "a17_oop"
 version = "0.1.0"
 
 [[package]]
