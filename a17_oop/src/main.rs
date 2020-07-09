@@ -59,7 +59,72 @@
 // 让我们看一下 Rust 中的 trait 对象是如何实现多态的。
 
 // =============================== 为使用不同类型的值而设计的trait对象 ======================
+// 在第八章中，我们谈到了 vector 只能存储同种类型元素的局限。
+// 示例中提供了一个定义 SpreadsheetCell 枚举来储存整型，浮点型和文本成员的替代方案。
+// 这意味着可以在每个单元中储存不同类型的数据，并仍能拥有一个代表一排单元的 vector。
+// 这在当编译代码时就知道希望可以交替使用的类型为固定集合的情况下是完全可行的。
 //
+// 然而有时我们希望库用户在特定情况下能够扩展有效的类型集合。
+
+// ----------------- 定义通用行为的trait ----------------------------
+// 我们可以使用 trait 对象代替泛型或具体类型。
+// 任何使用 trait 对象的位置，Rust 的类型系统会在编译时确保任何在此上下文中使用的值会实现其 trait 对象的 trait。
+// 如此便无需在编译时就知晓所有可能的类型。
+//
+// 之前提到过，Rust 刻意不将结构体与枚举称为 “对象”，以便与其他语言中的对象相区别。
+// 在结构体或枚举中，结构体字段中的数据和 impl 块中的行为是分开的，不同于其他语言中将数据和行为组合进一个称为对象的概念中。
+// trait 对象将数据和行为两者相结合，从这种意义上说则其更类似其他语言中的对象。
+// 不过 trait 对象不同于传统的对象，因为不能向 trait 对象增加数据。
+// trait 对象并不像其他语言中的对象那么通用：其（trait 对象）具体的作用是允许对通用行为进行抽象。
+
+mod demo {
+    pub trait Draw {
+        fn draw(&self);
+    }
+
+    pub struct Screen {
+        // 这个 vector 的类型是Box<dyn Draw>，
+        // 此为一个 trait 对象：它是Box中任何实现了 Draw trait 的类型的替身。
+        //
+        // 这与定义使用了带有 trait bound 的泛型类型参数的结构体不同。
+        // 泛型类型参数一次只能替代一个具体类型，而 trait 对象则允许在运行时替代多种具体类型。
+        pub components: Vec<Box<dyn Draw>>,
+    }
+
+    impl Screen {
+        pub fn run(&self) {
+            for component in self.components.iter() {
+                component.draw();
+            }
+        }
+    }
+
+    pub struct Button {
+        pub width: i32,
+        pub height: i32,
+    }
+}
+
+// 使用泛型实现
+mod generic {
+    pub trait Draw {
+        fn draw(&self);
+    }
+    pub struct Screen<T: Draw> {
+        pub components: Vec<T>,
+    }
+
+    impl<T> Screen<T>
+    where
+        T: Draw,
+    {
+        pub fn run(&self) {
+            for component in self.components.iter() {
+                component.draw();
+            }
+        }
+    }
+}
 
 // =============================== 面向对象设计模式的实现 ======================
 
