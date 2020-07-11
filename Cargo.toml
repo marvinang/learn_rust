@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 a11_tests = {path="./a11_tests"}
 a12_command_line = {path = "./a12_command_line"}
+a20_webserver = {path = "./a20_webserver"}
 
 [workspace]
 members = [
@@ -29,6 +30,9 @@ members = [
   "a15_pointers",
   "a16_concurrency",
   "a17_oop",
+  "a18_patterns_matching",
+  "a19_advaced_features",
+  "a20_webserver",
   "a21_appendix"
 ]
 

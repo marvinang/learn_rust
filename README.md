@@ -7,7 +7,7 @@ a13_functional/
 a14_cargo_crates/
 a15_pointers/
 a16_concurrency/
-a17_OOP/
+a17_oop/
 a18_patterns_matching/
 a19_advaced_features/
 a1_started/

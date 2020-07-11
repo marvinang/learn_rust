@@ -33,7 +33,19 @@ name = "a17_oop"
 version = "0.1.0"
 
 [[package]]
+name = "a18_patterns_matching"
+version = "0.1.0"
+
+[[package]]
+name = "a19_advaced_features"
+version = "0.1.0"
+
+[[package]]
 name = "a1_started"
+version = "0.1.0"
+
+[[package]]
+name = "a20_webserver"
 version = "0.1.0"
 
 [[package]]
@@ -102,6 +114,7 @@ version = "0.1.0"
 dependencies = [
  "a11_tests 0.1.0",
  "a12_command_line 0.1.0",
+ "a20_webserver 0.1.0",
 ]
 
 [[package]]
