@@ -1,0 +1,142 @@
+127.0.0.1	localhost
+127.0.1.1	lenovo
+
+127.0.0.1   myhbase
+127.0.0.1   gitlab.example.com
+
+::1	localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+
+# jetbrains
+#0.0.0.0 account.jetbrains.com
+#0.0.0.0 www.jetbrains.com
+
+
+# sublime
+0.0.0.0 license.sublimehq.com
+0.0.0.0 45.55.255.55
+0.0.0.0 45.55.41.223
+127.0.0.1 www.sublimetext.com
+127.0.0.1 sublimetext.com
+127.0.0.1 sublimehq.com
+127.0.0.1 telemetry.sublimehq.com
+
+# mmtrix
+115.231.98.78   osticket.mmtrix.com
+
+
+# ldap
+115.231.106.253 ldap-admin.mminternal.com
+115.231.106.253 ldap.mminternal.com
+
+# Confluence wiki
+122.228.212.146  cf.mmtrix.com
+
+# Jira
+122.228.212.146 jira.mmtrix.com
+
+# 堡垒机Jumpserver
+115.231.106.246  jump.mminternal.com
+
+# Git
+115.231.106.246  git.mmtrixcode.com
+
+# YAPI
+115.231.106.253 yapi.mminternal.com
+
+115.231.103.29  wiki.mmtrix.com
+
+# ITOA
+115.231.106.253  itoa-master.test.mmtrix.com
+115.231.106.253  itoa-develop.test.mmtrix.com
+115.231.106.253  itoa-taibao.test.mmtrix.com
+115.231.106.253  itoa-kanban-master.test.mmtrix.com
+115.231.106.253  itoa-kanban-develop.test.mmtrix.com
+115.231.106.253 itoa.mminternal.com
+115.231.106.253  itoa-develop-large-version.test.mmtrix.com
+115.231.98.78   itoa.cpic.mmtrix.com
+
+# apm
+115.231.98.78  www.master.mmtrix.com
+
+# 混合云
+115.231.106.253 goclouds-manager.mminternal.com
+115.231.106.253 develop.goclouds.mmtrix-test.com
+115.231.106.253 develop.goclouds-manager.mmtrix-test.com
+115.231.106.253 master.goclouds.mmtrix-test.com
+115.231.106.253 master.goclouds-manager.mmtrix-test.com
+
+# 贵阳
+115.231.106.253  change-cloud.itom.mmtrix-test.com
+115.231.106.253  feature-poc.main.itom.mmtrix-test.com
+115.231.106.253  main.itom.mmtrix-test.com
+115.231.106.253  sprint-20200601.main.itom.mmtrix-test.com/
+
+#数秦
+122.228.212.147 cloud.dataqin.com
+
+# ITOM 
+
+122.228.212.147 itom.gamefast.com
+122.228.212.147 itom.com
+115.231.106.253  itom.mmtrix-test.com
+115.231.106.253  develop.itom.mmtrix-test.com
+115.231.106.253  feature-dashboard.itom.mmtrix-test.com
+115.231.106.253  itom.mminternal.com
+115.231.106.253  beta.main.itom.mmtrix-test.com
+115.231.106.253  develop.main.itom.mmtrix-test.com
+115.231.106.253  develop.efficiently.itom.mmtrix-test.com
+115.231.106.253  staging.itom.mminternal.com
+115.231.106.253  old-itom.mmtrix-test.com
+115.231.106.253  master.itom.mmtrix-test.com
+115.231.106.253	test.itom.mmtrix-test.com
+115.231.106.253  testion.itom.mmtrix-test.com
+115.231.106.253  feature-dashboard.itom.mmtrix-test.com
+115.231.106.253  visual.mminternal.com
+115.231.106.253  main.itom.mmtrix-test.com
+10.10.25.28     office.itom.mmtrix-test.com
+
+115.231.106.253 sprint-20200601.main.itom.mmtrix-test.com
+115.231.106.253 sprint-20200706.main.itom.mmtrix-test.com
+
+# Sass
+# 15.231.106.253对应的内网IP是 10.10.100.7
+115.231.106.253 develop.manager.mmtrix-test.com
+115.231.106.253 master.manager.mmtrix-test.com
+
+115.231.106.253 master.usercenter.mmtrix-test.com
+115.231.106.253 manage.usercenter.mmtrix.com
+115.231.106.253 usercenter.mmtrix-test.com
+115.231.106.253 passport.mmtrix-test.com
+115.231.106.253 osticket.usercenter.mmtrix-test.com
+115.231.106.253 osticket.usercenter.mmtrix-test.com/scp
+115.231.106.253 develop.usercenter.mmtrix-test.com
+115.231.106.253 itoa.mmtrix-test.com
+115.231.106.253 itoa-develop.mmtrix-test.com
+115.231.106.253 rabbitmq-test.mmtrix-test.com
+115.231.106.253 develop.manager.mmtrix-test.com
+115.231.106.253 osticket.mmtrix.com
+115.231.106.253 sosotest.mmtrix-test.com
+
+
+#分销平台
+115.231.106.253 master.goclouds-distribution.mmtrix-test.com
+115.231.106.253 feature-0630.goclouds-distribution.mmtrix-test.com
+
+
+122.228.212.146 harbor.mmtrix.com
+115.231.106.253 jumpserver.mmtrix-test.com	
+115.231.106.253 usercenter.mmtrix-test.com
+
+# jira
+#115.231.103.26 jira.mmtrix.com
+
+# Confluence wiki
+122.228.212.146  cf.mmtrix.com
+# Jira
+122.228.212.146 jira.mmtrix.com
+
+# 140.82.113.4 github.com
+# 199.232.69.194 github.global.ssl.fastly.net
+# 140.82.114.10  codeload.github.com
