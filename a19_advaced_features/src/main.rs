@@ -213,7 +213,7 @@ fn broken_slice() {
     // println!("broken end... {:?}", s);
 }
 
-// ===================== 使用extern函数调用外部代码 ==================
+// ------------ 使用extern函数调用外部代码 ------ 
 // 有时你的 Rust 代码可能需要与其他语言编写的代码交互。
 // 为此 Rust 有一个关键字，extern，有助于创建和使用 外部函数接口（Foreign Function Interface， FFI）。
 // 外部函数接口是一个编程语言用以定义函数的方式，其允许不同（外部）编程语言调用这些函数。
@@ -318,6 +318,293 @@ unsafe impl Foo for i32 {
 // 不过使得 unsafe 代码正确也实属不易，因为编译器不能帮助保证内存安全。
 // 当有理由使用 unsafe 代码时，是可以这么做的，通过使用显式的 unsafe 标注使得在出现错误时易于追踪问题的源头。
 
+
+
+// ===================== 高级生命周期 =========================
+// 有三个未涉及到的生命周期高级特性：
+// 1. 生命周期子类型(lifetime subtyping), 一个确保某个生命周期长于另一个生命周期的方式。
+// 2. 生命周期bound(lifetime bounds), 用于指定泛型引用的生命周期。
+// 3. trait对象生命周期（trait object lifetimes), 以及他们是如何推断的，以及何时需要指定匿名生命周期：使（生命周期）深略更为明显。
+
+
+// --------------------- 生命周期子类型 --------------
+// 生命周期子类型是一个指定某个生命周期应该长于另一个生命周期的方式。
+// 为了探索生命周期子类型，想象一下我们想要编写一个解析器。
+// 为此会有一个储存了需要解析的字符串的引用的结构体 Context。
+// 解析器将会解析字符串并返回成功或失败。
+// 解析器需要借用 Context 来进行解析。
+// 其实现看起来像示例中的代码，除了缺少了必须的生命周期注解，
+// 所以这还不能编译：
+struct Context<'a>(&'a str);
+
+// 并通过语法 's: 'c 声明一个不短于 'c 的生命周期 's
+struct Parser<'c, 's:'c> {
+    context: &'c Context<'s>,
+}
+
+impl<'c, 's: 'c> Parser<'c, 's> {
+    fn parse(&self) -> Result<(), &'s str> {
+        Err(&self.context.0[1..])
+    }
+}
+
+// Parser 和 context 需要比整个函数长寿（outlive）并在函数开始之前和结束之后都有效以确保代码中的所有引用始终是有效的。
+// 虽然我们创建的两个 Parser 和 context 参数在函数的结尾就离开了作用域，因为 parse_context 获取了 context 的所有权。
+//
+// 需要一个方法来告诉 Rust Context 中的字符串 slice 与 Parser 中 Context 的引用有着不同的生命周期，
+// 而且 parse_context 返回值与 Context 中字符串 slice 的生命周期相联系。
+fn parse_context(context: Context) -> Result<(), &str> {
+    Parser{ context: &context}.parse()
+}
+
+// ------------------ 生命周期bound ----------
+// 在第十章 「trait bound」 部分，我们讨论了如何在泛型类型上使用 trait bound。
+// 也可以像泛型那样为生命周期参数增加限制，这被称为 生命周期 bound（lifetime bounds）。
+// 生命周期 bound 帮助 Rust 验证泛型的引用不会存在的比其引用的数据更久。
+
+// T 增加生命周期 bound 来指定 T 中的任何引用需至少与 'a 存活的一样久
+
+// 现在代码可以编译了，因为 T: 'a 语法指定了 T 可以为任意类型，不过如果它包含任何引用的话，
+// 其生命周期必须至少与 'a 一样长。
+struct Ref<'a, T: 'a>(&'a T);
+
+// 在 T 上增加 'static 生命周期 bound，来限制T 为只拥有 'static 生命周期的引用或没有引用的类型
+// 因为 'static 意味着引用必须同整个程序存活的一样长，一个不包含引用的类型满足所有引用都与整个程序存活的一样长的标准（因为他们没有引用）。对于借用检查器来说它关心的是引用是否存活的足够久，没有引用的类型与有永远存在的引用的类型并没有真正的区别；对于确定引用是否比其所引用的值存活得较短的目的来说两者是一样的。
+struct StaticRef<T: 'static>(&'static T);
+
+// ------------ trait 对象生命周期的推断 -------------
+// 
+trait Red{}
+
+struct Ball<'a> {
+    diameter: &'a i32,
+}
+
+impl <'a> Red for Ball<'a> {}
+
+
+// 这段代码能没有任何错误的编译，即便并没有明确指出 obj 中涉及的任何生命周期。
+// 这是因为有如下生命周期与 trait 对象必须遵守的规则：
+//
+//   1. trait 对象的默认生命周期是 'static。
+//   2. 如果有 &'a X 或 &'a mut X，则默认生命周期是 'a。
+//   3. 如果只有 T: 'a 从句， 则默认生命周期是 'a。
+//   4. 如果有多个类似 T: 'a 的从句，则没有默认生命周期；必须明确指定。
+
+// 当必须明确指定时，可以为像 Box<Red> 这样的 trait 对象增加生命周期 bound，
+// 根据需要使用语法 Box<Foo + 'a> 或 Box<Foo + 'static>。
+// 正如其他的 bound，这意味着任何 Red trait 的实现如果在内部包含有引用，
+// 这些引用就必须拥有与 trait 对象 bound 中所指定的相同的生命周期。
+fn new_Ball() {
+    let num = 5;
+    let obj = Box::new(Ball {diameter: &num}) as Box<dyn Red>;
+}
+
+// --------------------- 匿名生命周期 -------------------------
+// 比方说有一个封装了一个字符串 slice 的结构体，如下：
+struct StrWrap<'a>(&'a str);
+
+// 可以像这样编写一个返回它们的函数：
+fn foo<'a>(string: &'a str) -> StrWrap<'a> {
+    StrWrap(string)
+}
+// 不过这里有很多的 'a！为了消除这些噪音，可以使用匿名生命周期，'_，如下：
+fn foo_new(string: &str) -> StrWrap<'_> {
+    StrWrap(string)
+}
+// '_ 表明 「在此处使用省略的生命周期。」 
+// 这意味着我们仍然知道 StrWrap 包含一个引用，不过无需所有的生命周期注解来知道。
+// 其也能用于 impl；例如：
+trait Debug {}
+// impl<'a> Debug for StrWrap<'a> {
+// }
+
+// 省略生命周期
+impl Debug for StrWrap<'_> {
+}
+
+
+// ================ 高级trait ============================
+
+// ---------- 关联类型在trait定义中指定站位符类型 -----
+// 关联类型（associated types）是一个将类型占位符与 trait 相关联的方式，
+// 这样 trait 的方法签名中就可以使用这些占位符类型。
+// trait 的实现者会针对特定的实现在这个类型的位置指定相应的具体类型。
+// 如此可以定义一个使用多种类型的 trait，直到实现此 trait 时都无需知道这些类型具体是什么。
+pub trait Iterator {
+    type Item;
+    fn next(&mut self) -> Option<Self::Item>;
+}
+
+struct Counter {}
+
+impl Iterator for Counter {
+    type Item = u32;
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(10)
+    }
+}
+pub trait Iterator_1<T> {
+    fn next(&mut self) -> Option<T>;
+}
+
+// 以上两种方式的区别是：
+// 区别在于当如示例那样使用泛型时，则不得不在每一个实现中标注类型。
+// 这是因为我们也可以实现为 Iterator<String> for Counter，或任何其他类型，
+// 这样就可以有多个 Counter 的 Iterator 的实现。
+// 换句话说，当 trait 有泛型参数时，可以多次实现这个trait，每次需改变泛型参数的具体类型。
+// 接着当使用 Counter 的 next 方法时，必须提供类型注解来表明希望使用 Iterator 的哪一个实现。
+
+// 通过关联类型，则无需标注类型因为不能多次实现这个 trait。
+// 对于示例使用关联类型的定义，我们只能选择一次 Item 会是什么类型，因为只能有一个 impl Iterator for Counter。
+// 当调用 Counter 的 next 时不必每次指定我们需要 u32 值的迭代器。
+
+// ---------------- 默认泛型类型参数和运算符重载 --------------
+// 当使用泛型类型参数时，可以为泛型指定一个默认的具体类型。
+// 如果默认类型就足够的话，这消除了为具体类型实现 trait 的需要。
+// 为泛型类型指定默认类型的语法是在声明泛型类型时使用 <PlaceholderType=ConcreteType>。
+
+// 这种情况的一个非常好的例子是用于运算符重载。
+// 运算符重载（Operator overloading）是指在特定情况下自定义运算符（比如 +）行为的操作。
+
+// Rust 并不允许创建自定义运算符或重载任意运算符，
+// 不过std::ops中所列出的运算符和相应的 trait 可以通过实现运算符相关 trait 来重载
+
+use std::ops::Add;
+
+#[derive(Debug, PartialEq)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl Add for Point {
+    type Output = Point;
+    fn add(self, other: Point) -> Point {
+        Point {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
+fn add_point() {
+    let p1 = Point { x: 1, y: 0};
+    let p2 = Point { x: 0, y: 1};
+    println!("{:?}", p1 + p2);
+}
+
+// 查看Add trait 
+// trait Add<RHS=Self> {
+//     type Output;
+//     fn add(self, rhs: RHS) -> Self::Output;
+// }
+// 这看来应该很熟悉，这是一个带有一个方法和一个关联类型的 trait。
+// 比较陌生的部分是尖括号中的 RHS=Self：这个语法叫做 默认类型参数（default type parameters）。
+// RHS 是一个泛型类型参数（“right hand side” 的缩写），它用于定义 add 方法中的 rhs 参数。
+// 如果实现 Add trait 时不指定 RHS 的具体类型，RHS 的类型将是默认的 Self 类型，也就是在其上实现 Add 的类型。
+
+struct Millimeters(u32);
+struct Meters(u32);
+impl Add<Meters> for Millimeters {
+    type Output = Millimeters;
+    fn add(self, other: Meters) -> Millimeters {
+        Millimeters(self.0 + (other.0 * 1000))
+    }
+}
+
+// 为了使 Millimeters 和 Meters 能够相加，我们指定 impl Add<Meters> 来设定 RHS 类型参数的值而不是使用默认的 Self。
+//
+// 默认参数类型主要用于如下两个方面：
+//    1. 扩展类型而不破坏现有代码。
+//    2. 在大部分用户都不需要的特定情况进行自定义。
+
+// 标准库的 Add trait 就是一个第二个目的例子：大部分时候你会将两个相似的类型相加，不过它提供了自定义额外行为的能力。
+// 在 Add trait 定义中使用默认类型参数意味着大部分时候无需指定额外的参数。
+// 换句话说，一小部分实现的样板代码是不必要的，这样使用 trait 就更容易了。
+//
+// 第一个目的是相似的，但过程是反过来的：如果需要为现有 trait 增加类型参数，
+// 为其提供一个默认类型将允许我们在不破坏现有实现代码的基础上扩展 trait 的功能。
+
+
+// -------------- 完全限定语法与消歧义： 调用相同名称的方法 ----
+// Rust 既不能避免一个 trait 与另一个 trait 拥有相同名称的方法，也不能阻止为同一类型同时实现这两个 trait。
+// 甚至直接在类型上实现开始已经有的同名方法也是可能的！
+// 不过，当调用这些同名方法时，需要告诉 Rust 我们希望使用哪一个。
+trait Pilot {
+    fn fly(&self);
+}
+trait Wizard {
+    fn fly(&self);
+}
+struct Human; 
+
+impl Pilot for Human {
+    fn fly(&self) {
+        println!("pilot");
+    }
+}
+impl Wizard for Human {
+    fn fly(&self) {
+        println!("wizard");
+    }
+}
+impl Human {
+    fn fly(&self) {
+        println!("human");
+    }
+}
+
+fn print_human() {
+    let person = Human;
+    person.fly();
+    // 因为 fly 方法获取一个 self 参数，如果有两个 类型 都实现了同一 trait，
+    // Rust 可以根据 self 的类型计算出应该使用哪一个 trait 实现。
+    Pilot::fly(&person);
+    Wizard::fly(&person);
+}
+
+// 然而，关联函数是 trait 的一部分，但没有 self 参数。
+// 当同一作用域的两个类型实现了同一 trait，Rust 就不能计算出我们期望的是哪一个类型，
+// 除非使用 完全限定语法（fully qualified syntax）。
+trait Animal {
+    fn baby_name() -> String;
+}
+struct Dog;
+impl Dog {
+    fn baby_name() -> String {
+        String::from("dog")
+    }
+}
+impl Animal for Dog {
+    fn baby_name() -> String {
+        String::from("animal")
+    }
+}
+
+fn print_dog() {
+    println!("=={}", Dog::baby_name());
+    // 因为 Animal::baby_name 是关联函数而不是方法，因此它没有 self 参数，
+    // Rust 无法计算出所需的是哪一个 Animal::baby_name 实现
+    // println!("=={}", Animal::baby_name());
+
+    // 为了消歧义并告诉 Rust 我们希望使用的是 Dog 的 Animal 实现，
+    // 需要使用 完全限定语法，这是调用函数时最为明确的方式
+    println!("=={}", <Dog as Animal>::baby_name());
+
+}
+
+// 通常，完全限定语法定义为：
+// <Type as Trait>::function(receiver_if_method, next_arg, ...);
+//
+// 对于关联函数，其没有一个 receiver，故只会有其他参数的列表。
+// 可以选择在任何函数或方法调用处使用完全限定语法。
+// 然而，允许省略任何 Rust 能够从程序中的其他信息中计算出的部分。
+// 只有当存在多个同名实现而 Rust 需要帮助以便知道我们希望调用哪个实现时，才需要使用这个较为冗长的语法。
+
+// ------------- 父trait用于在另一个trait中使用某trait的功能 ----------
+
+
 fn main() {
     raw_pointer();
     call_unsafe_function();
@@ -329,4 +616,14 @@ fn main() {
     unsafe {
         println!("COUNTER: {}", COUNTER);
     }
+    //------
+    let a = Context("nihao a");
+    println!("{:?}", parse_context(a));
+    new_Ball();
+    add_point();
+    //-----
+    print_human();
+    print_dog();
 }
+
+
