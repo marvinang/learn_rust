@@ -603,7 +603,65 @@ fn print_dog() {
 // 只有当存在多个同名实现而 Rust 需要帮助以便知道我们希望调用哪个实现时，才需要使用这个较为冗长的语法。
 
 // ------------- 父trait用于在另一个trait中使用某trait的功能 ----------
+// 有时我们可能会需要某个 trait 使用另一个 trait 的功能。
+// 在这种情况下，需要能够依赖相关的 trait 也被实现。
+// 这个所需的 trait 是我们实现的 trait 的 父（超） trait（supertrait）。
+use std::fmt;
 
+trait OutlinePrint: fmt::Display {
+    fn outline_print(&self) {
+        let output = self.to_string();
+        let len = output.len();
+        println!("{}", "*".repeat(len + 4));
+        println!("*{}*", " ".repeat(len + 2));
+        println!("* {} *", output);
+        println!("*{}*", " ".repeat(len + 2));
+        println!("{}", "*".repeat(len + 4));
+    }
+}
+
+struct People {
+    name: String,
+    age: u32,
+}
+
+impl fmt::Display for People {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({}, {})", self.name, self.age)
+    }
+}
+impl OutlinePrint for People {}
+
+// -------------- newtype 模式用以在外部类型上实现外部trait ------------
+// 在第十章的 “为类型实现 trait” “为类型实现 trait” 部分，我们提到了孤儿规则（orphan rule），
+// 它说明只要 trait 或类型对于当前 crate 是本地的话就可以在此类型上实现该 trait。
+// 一个绕开这个限制的方法是使用 newtype 模式（newtype pattern），
+// 它涉及到在一个元组结构体（第五章 “用没有命名字段的元组结构体来创建不同的类型” 部分介绍了元组结构体）中创建一个新类型。
+// 这个元组结构体带有一个字段作为希望实现 trait 的类型的简单封装。
+// 接着这个封装类型对于 crate 是本地的，这样就可以在这个封装上实现 trait。
+// Newtype 是一个源自（U.C.0079，逃）Haskell 编程语言的概念。
+// 使用这个模式没有运行时性能惩罚，这个封装类型在编译时就被省略了。
+
+// 如果想要在 Vec<T> 上实现 Display，而孤儿规则阻止我们直接这么做，
+// 因为 Display trait 和 Vec<T> 都定义于我们的 crate 之外。
+// 可以创建一个包含 Vec<T> 实例的 Wrapper 结构体.
+struct Wrapper(Vec<String>);
+impl fmt::Display for Wrapper {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "[{}]", self.0.join(", "))
+    }
+}
+
+// 此方法的缺点是，因为 Wrapper 是一个新类型，它没有定义于其值之上的方法；
+// 必须直接在 Wrapper 上实现 Vec<T> 的所有方法，
+// 这样就可以代理到self.0 上 —— 这就允许我们完全像 Vec<T> 那样对待 Wrapper。
+// 如果希望新类型拥有其内部类型的每一个方法，为封装类型实现 Deref trait（第十五章 “通过 Deref trait 将智能指针当作常规引用处理” 部分讨论过）并返回其内部类型是一种解决方案。
+// 如果不希望封装类型拥有所有内部类型的方法 —— 比如为了限制封装类型的行为 —— 则必须只自行实现所需的方法。
+
+fn set_wrapper() {
+    let w = Wrapper(vec![String::from("hello"), String::from("world")]);
+    println!("w = {}", w);
+}
 
 fn main() {
     raw_pointer();
@@ -624,6 +682,10 @@ fn main() {
     //-----
     print_human();
     print_dog();
+    let p = People { name: String::from("tom"), age: 32};
+    p.outline_print();
+    set_wrapper();
+
 }
 
 
