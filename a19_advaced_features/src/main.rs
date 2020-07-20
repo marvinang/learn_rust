@@ -213,7 +213,7 @@ fn broken_slice() {
     // println!("broken end... {:?}", s);
 }
 
-// ------------ 使用extern函数调用外部代码 ------ 
+// ------------ 使用extern函数调用外部代码 ------
 // 有时你的 Rust 代码可能需要与其他语言编写的代码交互。
 // 为此 Rust 有一个关键字，extern，有助于创建和使用 外部函数接口（Foreign Function Interface， FFI）。
 // 外部函数接口是一个编程语言用以定义函数的方式，其允许不同（外部）编程语言调用这些函数。
@@ -251,7 +251,7 @@ pub extern "C" fn call_from_c() {
 }
 // extern 的使用无需unsafe。
 
-// ------------------- 访问或修改可变静态变量 --------- 
+// ------------------- 访问或修改可变静态变量 ---------
 // 目前为止全书都尽量避免讨论 全局变量（global variables），Rust 确实支持他们，
 // 不过这对于 Rust 的所有权规则来说是有问题的。
 // 如果有两个线程访问相同的可变全局变量，则可能会造成数据竞争。
@@ -291,18 +291,14 @@ fn add_to_count(inc: u32) {
 // 任何可能的情况，请优先使用第十六章讨论的并发技术和线程安全智能指针，
 // 这样编译器就能检测不同线程间的数据访问是否是安全的。
 
-
 // -------------------- 实现不安全的trait  ------------------
 // 最后一个只能用在 unsafe 中的操作是实现不安全 trait。
 // 当至少有一个方法中包含编译器不能验证的不变量时 trait 是不安全的。
 // 可以在 trait 之前增加 unsafe 关键字将 trait 声明为 unsafe，同时 trait 的实现也必须标记为 unsafe，
 // 如示例所示：
-unsafe trait Foo {
+unsafe trait Foo {}
 
-}
-
-unsafe impl Foo for i32 {
-}
+unsafe impl Foo for i32 {}
 // 通过 unsafe impl，我们承诺将保证编译器所不能验证的不变量。
 
 // 作为一个例子，回忆第十六章 “使用 Sync 和 Send trait 的可扩展并发” 部分中的 Sync 和 Send 标记 trait，
@@ -312,20 +308,16 @@ unsafe impl Foo for i32 {
 // Rust 不能验证我们的类型保证可以安全的跨线程发送或在多线程键访问，
 // 所以需要我们自己进行检查并通过 unsafe 表明。
 
-
 // -------------------------------- 何时使用 unsafe ----------------
 // 使用 unsafe 来进行这四个操作（超级力量）之一是没有问题的，甚至是不需要深思熟虑的，
 // 不过使得 unsafe 代码正确也实属不易，因为编译器不能帮助保证内存安全。
 // 当有理由使用 unsafe 代码时，是可以这么做的，通过使用显式的 unsafe 标注使得在出现错误时易于追踪问题的源头。
-
-
 
 // ===================== 高级生命周期 =========================
 // 有三个未涉及到的生命周期高级特性：
 // 1. 生命周期子类型(lifetime subtyping), 一个确保某个生命周期长于另一个生命周期的方式。
 // 2. 生命周期bound(lifetime bounds), 用于指定泛型引用的生命周期。
 // 3. trait对象生命周期（trait object lifetimes), 以及他们是如何推断的，以及何时需要指定匿名生命周期：使（生命周期）深略更为明显。
-
 
 // --------------------- 生命周期子类型 --------------
 // 生命周期子类型是一个指定某个生命周期应该长于另一个生命周期的方式。
@@ -338,7 +330,7 @@ unsafe impl Foo for i32 {
 struct Context<'a>(&'a str);
 
 // 并通过语法 's: 'c 声明一个不短于 'c 的生命周期 's
-struct Parser<'c, 's:'c> {
+struct Parser<'c, 's: 'c> {
     context: &'c Context<'s>,
 }
 
@@ -354,7 +346,7 @@ impl<'c, 's: 'c> Parser<'c, 's> {
 // 需要一个方法来告诉 Rust Context 中的字符串 slice 与 Parser 中 Context 的引用有着不同的生命周期，
 // 而且 parse_context 返回值与 Context 中字符串 slice 的生命周期相联系。
 fn parse_context(context: Context) -> Result<(), &str> {
-    Parser{ context: &context}.parse()
+    Parser { context: &context }.parse()
 }
 
 // ------------------ 生命周期bound ----------
@@ -373,15 +365,14 @@ struct Ref<'a, T: 'a>(&'a T);
 struct StaticRef<T: 'static>(&'static T);
 
 // ------------ trait 对象生命周期的推断 -------------
-// 
-trait Red{}
+//
+trait Red {}
 
 struct Ball<'a> {
     diameter: &'a i32,
 }
 
-impl <'a> Red for Ball<'a> {}
-
+impl<'a> Red for Ball<'a> {}
 
 // 这段代码能没有任何错误的编译，即便并没有明确指出 obj 中涉及的任何生命周期。
 // 这是因为有如下生命周期与 trait 对象必须遵守的规则：
@@ -397,7 +388,7 @@ impl <'a> Red for Ball<'a> {}
 // 这些引用就必须拥有与 trait 对象 bound 中所指定的相同的生命周期。
 fn new_Ball() {
     let num = 5;
-    let obj = Box::new(Ball {diameter: &num}) as Box<dyn Red>;
+    let obj = Box::new(Ball { diameter: &num }) as Box<dyn Red>;
 }
 
 // --------------------- 匿名生命周期 -------------------------
@@ -412,7 +403,7 @@ fn foo<'a>(string: &'a str) -> StrWrap<'a> {
 fn foo_new(string: &str) -> StrWrap<'_> {
     StrWrap(string)
 }
-// '_ 表明 「在此处使用省略的生命周期。」 
+// '_ 表明 「在此处使用省略的生命周期。」
 // 这意味着我们仍然知道 StrWrap 包含一个引用，不过无需所有的生命周期注解来知道。
 // 其也能用于 impl；例如：
 trait Debug {}
@@ -420,9 +411,7 @@ trait Debug {}
 // }
 
 // 省略生命周期
-impl Debug for StrWrap<'_> {
-}
-
+impl Debug for StrWrap<'_> {}
 
 // ================ 高级trait ============================
 
@@ -489,12 +478,12 @@ impl Add for Point {
 }
 
 fn add_point() {
-    let p1 = Point { x: 1, y: 0};
-    let p2 = Point { x: 0, y: 1};
+    let p1 = Point { x: 1, y: 0 };
+    let p2 = Point { x: 0, y: 1 };
     println!("{:?}", p1 + p2);
 }
 
-// 查看Add trait 
+// 查看Add trait
 // trait Add<RHS=Self> {
 //     type Output;
 //     fn add(self, rhs: RHS) -> Self::Output;
@@ -526,7 +515,6 @@ impl Add<Meters> for Millimeters {
 // 第一个目的是相似的，但过程是反过来的：如果需要为现有 trait 增加类型参数，
 // 为其提供一个默认类型将允许我们在不破坏现有实现代码的基础上扩展 trait 的功能。
 
-
 // -------------- 完全限定语法与消歧义： 调用相同名称的方法 ----
 // Rust 既不能避免一个 trait 与另一个 trait 拥有相同名称的方法，也不能阻止为同一类型同时实现这两个 trait。
 // 甚至直接在类型上实现开始已经有的同名方法也是可能的！
@@ -537,7 +525,7 @@ trait Pilot {
 trait Wizard {
     fn fly(&self);
 }
-struct Human; 
+struct Human;
 
 impl Pilot for Human {
     fn fly(&self) {
@@ -591,7 +579,6 @@ fn print_dog() {
     // 为了消歧义并告诉 Rust 我们希望使用的是 Dog 的 Animal 实现，
     // 需要使用 完全限定语法，这是调用函数时最为明确的方式
     println!("=={}", <Dog as Animal>::baby_name());
-
 }
 
 // 通常，完全限定语法定义为：
@@ -663,6 +650,165 @@ fn set_wrapper() {
     println!("w = {}", w);
 }
 
+// ================ 高级类型 ===========
+
+// ---------- 为了类型安全和抽象而使用 newtype 模式 --------
+// newtype 模式可以用于一些其他我们还未讨论的功能，包括静态的确保某值不被混淆，和用来表示一个值的单元。
+// 实际上示例 19-23 中已经有一个这样的例子：Millimeters 和 Meters 结构体都在 newtype 中封装了 u32 值。
+// 如果编写了一个有 Millimeters 类型参数的函数，不小心使用 Meters 或普通的 u32 值来调用该函数的程序是不能编译的。
+
+// 另一个 newtype 模式的应用在于抽象掉一些类型的实现细节：
+// 例如，封装类型可以暴露出与直接使用其内部私有类型时所不同的公有 API，以便限制其功能。
+
+// newtype 也可以隐藏其内部的泛型类型。
+// 例如，可以提供一个封装了HashMap<i32, String> 的People 类型，用来储存人名以及相应的 ID。
+// 使用 People 的代码只需与提供的公有 API 交互即可，比如向 People 集合增加名字字符串的方法，
+// 这样这些代码就无需知道在内部我们将一个 i32 ID 赋予了这个名字了。
+// newtype 模式是一种实现第十七章 “封装隐藏了实现细节” 部分所讨论的隐藏实现细节的封装的轻量级方法
+
+// ----------- 类型别名用来创建类型同义词 ------------------
+// 连同 newtype 模式，Rust 还提供了声明 类型别名（type alias）的能力，
+// 使用 type 关键字来给予现有类型另一个名字。
+
+type Kilometers = i32;
+// 这意味着 Kilometers 是 i32 的 同义词（synonym）；
+// 不同于示例 19-23 中创建的 Millimeters 和 Meters 类型。
+// Kilometers 不是一个新的、单独的类型。
+// Kilometers 类型的值将被完全当作 i32 类型值来对待：
+fn print_kilometers() {
+    let x: i32 = 5;
+    let y: Kilometers = 5;
+    println!("x + y = {}", x + y);
+}
+
+// 类型别名的主要用途是减少重复。例如，可能会有这样很长的类型：
+// Box<dyn Fn() + Send + 'static>
+type Thunk = Box<dyn Fn() + Send + 'static>;
+// let f: Thunk = Box::new(|| println!("hi"));
+
+// 类型别名也经常与 Result<T, E> 结合使用来减少重复。
+type Result<T> = std::result::Result<T, std::io::Error>;
+pub trait Write {
+    fn write(&mut self, buf: &[u8]) -> Result<usize>;
+    fn flush(&mut self) -> Result<()>;
+
+    fn write_all(&mut self, buf: &[u8]) -> Result<()>;
+    fn write_fmt(&mut self, fmt: fmt::Arguments) -> Result<()>;
+}
+
+// --------- 从不返回的never type ------------
+// Rust 有一个叫做 ! 的特殊类型。
+// 在类型理论术语中，它被称为 empty type，因为它没有值。
+// 我们更倾向于称之为 never type。
+// 这个名字描述了它的作用：在函数从不返回的时候充当返回值。例如：
+fn bar() -> ! {
+    panic!("hello")
+}
+// 这读 “函数 bar 从不返回”，而从不返回的函数被称为 发散函数（diverging functions）。
+// 不能创建 ! 类型的值，所以 bar 也不可能返回值。
+fn no_return(guess: String) {
+    loop {
+        let guess: u32 = match guess.trim().parse() {
+            Ok(num) => num,
+            Err(_) => continue,
+        };
+    }
+}
+// 正如你可能猜到的，continue 的值是 !。
+// 也就是说，当 Rust 要计算 guess 的类型时，它查看这两个分支。
+// 前者是 u32 值，而后者是 ! 值。
+// 因为 ! 并没有一个值，Rust 决定 guess 的类型是 u32。
+//
+// 描述 ! 的行为的正式方式是 never type 可以强转为任何其他类型。
+// 允许 match 的分支以 continue 结束是因为 continue 并不真正返回一个值；
+// 相反它把控制权交回上层循环，所以在 Err 的情况，事实上并未对 guess 赋值。
+
+// = never type 的另一个用途是 panic!。
+// impl<T> Option<T> {
+//     pub fn unwrap(self) -> T {
+//         match self {
+//             Some(val) => val,
+//             None => panic!("called `Option::unwrap()` on a `None` value"),
+//         }
+//     }
+// }
+// Rust 知道 val 是 T 类型，panic! 是 ! 类型，所以整个 match 表达式的结果是 T 类型。
+// 这能工作是因为 panic! 并不产生一个值；它会终止程序。
+// 对于 None 的情况，unwrap 并不返回一个值，所以这些代码是有效。
+
+// 最后一个有着 ! 类型的表达式是 loop：
+fn loop_value() {
+    print!("forever ");
+    loop {
+        print!("and ever ");
+    }
+}
+// 这里，循环永远也不结束，所以此表达式的值是 !。
+// 但是如果引入 break 这就不为真了，因为循环在执行到 break 后就会终止。
+
+
+// ----------- 动态大小类型和Sized trait --------------
+// 因为 Rust 需要知道例如应该为特定类型的值分配多少空间这样的信息其类型系统的一个特定的角落可能令人迷惑：
+// 这就是 动态大小类型（dynamically sized types）的概念。
+// 这有时被称为 “DST” 或 “unsized types”，这些类型允许我们处理只有在运行时才知道大小的类型。
+
+// 让我们深入研究一个贯穿本书都在使用的动态大小类型的细节：str。
+// 没错，不是 &str，而是 str 本身。
+// str 是一个 DST；直到运行时我们都不知道字符串有多长。
+// 因为直到运行时都不能知道大其小，也就意味着不能创建 str 类型的变量，也不能获取 str 类型的参数。
+// 考虑一下这些代码，他们不能工作：
+fn dst() {
+    let s1: str = "Hello there";
+    let s2: str = "How's it going";
+}
+
+// Rust 需要知道应该为特定类型的值分配多少内存，同时所有同一类型的值必须使用相同数量的内存。
+// 如果允许编写这样的代码，也就意味着这两个 str 需要占用完全相同大小的空间，
+// 不过它们有着不同的长度。这也就是为什么不可能创建一个存放动态大小类型的变量的原因。
+
+// 所以虽然 &T 是一个储存了 T 所在的内存位置的单个值，&str 则是 两个 值：str 的地址和其长度。
+// 这样，&str 就有了一个在编译时可以知道的大小：它是 usize 长度的两倍。
+// 也就是说，我们总是知道 &str 的大小，而无论其引用的字符串是多长。
+// 这里是 Rust 中动态大小类型的常规用法：他们有一些额外的元信息来储存动态信息的大小。
+//
+// 这引出了动态大小类型的黄金规则：必须将动态大小类型的值置于某种指针之后。
+
+// 可以将 str 与所有类型的指针结合：比如 Box<str> 或 Rc<str>。
+// 事实上，之前我们已经见过了，不过是另一个动态大小类型：trait。
+// 每一个 trait 都是一个可以通过 trait 名称来引用的动态大小类型。
+// 在第十七章 “为使用不同类型的值而设计的 trait 对象” 部分，我们提到了为了将 trait 用于 trait 对象，
+// 必须将他们放入指针之后，比如 &Trait 或 Box<Trait>（Rc<Trait> 也可以）。
+
+// 为了处理 DST，Rust 有一个特定的 trait 来决定一个类型的大小是否在编译时可知：这就是 Sized trait。
+// 这个 trait 自动为编译器在编译时就知道大小的类型实现。
+// 另外，Rust 隐式的为每一个泛型函数增加了 Sized bound。
+// 也就是说，对于如下泛型函数定义：
+// fn generic<T>(t: T) {
+//    println!("generic");
+// }
+
+fn generic<T: Sized>(t: T) {
+    println!("generic");
+}
+
+// 泛型函数默认只能用于在编译时已知大小的类型。
+// 然而可以使用如下特殊语法来放宽这个限制：
+fn generic_1<T: ?Sized>(t: &T) {
+    println!("generic");
+}
+
+// ?Sized trait bound 与 Sized 相对；
+// 也就是说，它可以读作 “T 可能是也可能不是 Sized 的”。
+// 这个语法只能用于 Sized ，而不能用于其他 trait。
+
+// 另外注意我们将 t 参数的类型从 T 变为了 &T：因为其类型可能不是 Sized 的，所以需要将其置于某种指针之后。
+// 在这个例子中选择了引用。
+
+
+//
+// ================ 函数和闭包 =================================
+//
+
 fn main() {
     raw_pointer();
     call_unsafe_function();
@@ -682,10 +828,12 @@ fn main() {
     //-----
     print_human();
     print_dog();
-    let p = People { name: String::from("tom"), age: 32};
+    let p = People {
+        name: String::from("tom"),
+        age: 32,
+    };
     p.outline_print();
     set_wrapper();
 
+    print_kilometers();
 }
-
-
