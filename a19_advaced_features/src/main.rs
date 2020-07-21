@@ -334,20 +334,21 @@ struct Parser<'c, 's: 'c> {
     context: &'c Context<'s>,
 }
 
-impl<'c, 's: 'c> Parser<'c, 's> {
-    fn parse(&self) -> Result<(), &'s str> {
-        Err(&self.context.0[1..])
-    }
-}
+// impl<'c, 's: 'c> Parser<'c, 's> {
+//     fn parse(&self) -> Result<(), &'s str> {
+//         Err(&self.context.0[1..])
+//     }
+// }
 
 // Parser 和 context 需要比整个函数长寿（outlive）并在函数开始之前和结束之后都有效以确保代码中的所有引用始终是有效的。
 // 虽然我们创建的两个 Parser 和 context 参数在函数的结尾就离开了作用域，因为 parse_context 获取了 context 的所有权。
 //
 // 需要一个方法来告诉 Rust Context 中的字符串 slice 与 Parser 中 Context 的引用有着不同的生命周期，
 // 而且 parse_context 返回值与 Context 中字符串 slice 的生命周期相联系。
-fn parse_context(context: Context) -> Result<(), &str> {
-    Parser { context: &context }.parse()
-}
+
+// fn parse_context(context: Context) -> Result<(), &str> {
+//     Parser { context: &context }.parse()
+// }
 
 // ------------------ 生命周期bound ----------
 // 在第十章 「trait bound」 部分，我们讨论了如何在泛型类型上使用 trait bound。
@@ -746,7 +747,6 @@ fn loop_value() {
 // 这里，循环永远也不结束，所以此表达式的值是 !。
 // 但是如果引入 break 这就不为真了，因为循环在执行到 break 后就会终止。
 
-
 // ----------- 动态大小类型和Sized trait --------------
 // 因为 Rust 需要知道例如应该为特定类型的值分配多少空间这样的信息其类型系统的一个特定的角落可能令人迷惑：
 // 这就是 动态大小类型（dynamically sized types）的概念。
@@ -758,8 +758,8 @@ fn loop_value() {
 // 因为直到运行时都不能知道大其小，也就意味着不能创建 str 类型的变量，也不能获取 str 类型的参数。
 // 考虑一下这些代码，他们不能工作：
 fn dst() {
-    let s1: str = "Hello there";
-    let s2: str = "How's it going";
+    // let s1: str = "Hello there";
+    // let s2: str = "How's it going";
 }
 
 // Rust 需要知道应该为特定类型的值分配多少内存，同时所有同一类型的值必须使用相同数量的内存。
@@ -804,10 +804,87 @@ fn generic_1<T: ?Sized>(t: &T) {
 // 另外注意我们将 t 参数的类型从 T 变为了 &T：因为其类型可能不是 Sized 的，所以需要将其置于某种指针之后。
 // 在这个例子中选择了引用。
 
+//
+// ================ 高级函数和闭包 =================================
 
-//
-// ================ 函数和闭包 =================================
-//
+// ----------- 函数指针 ------------
+// 我们讨论过了如何向函数传递闭包；
+// 也可以向函数传递常规函数！
+// 这在我们希望传递已经定义的函数而不是重新定义闭包作为参数是很有用。
+// 通过函数指针允许我们使用函数作为另一个函数的参数。
+// 函数的类型是 fn （使用小写的 “f” ）以免与 Fn 闭包 trait 相混淆。
+// fn 被称为 函数指针（function pointer）。
+fn add_one(x: i32) -> i32 {
+    x + 1
+}
+
+fn do_twice(f: fn(i32) -> i32, arg: i32) -> i32 {
+    f(arg) + f(arg)
+}
+
+// 不同于闭包，fn 是一个类型而不是一个 trait，所以直接指定 fn 作为参数而不是声明一个带有 Fn 作为 trait bound 的泛型参数。
+
+// 函数指针实现了所有三个闭包 trait（Fn、FnMut 和 FnOnce），
+// 所以总是可以在调用期望闭包的函数时传递函数指针作为参数。
+// 倾向于编写使用泛型和闭包 trait 的函数，这样它就能接受函数或闭包作为参数。
+
+// 一个只期望接受 fn 而不接受闭包的情况的例子是与不存在闭包的外部代码交互时：
+// C 语言的函数可以接受函数作为参数，但 C 语言没有闭包。
+
+// 作为一个既可以使用内联定义的闭包又可以使用命名函数的例子，让我们看看一个 map 的应用。
+// 使用 map 函数将一个数字 vector 转换为一个字符串 vector，就可以使用闭包，比如这样：
+fn map_conv() {
+    let list_of_numbers = vec![1, 2, 3];
+    let list_of_strings: Vec<String> = list_of_numbers.iter().map(|i| i.to_string()).collect();
+    println!("=== list_of_strings ====== {:?}", list_of_strings);
+}
+
+// 或者可以将函数作为map的参数来代替闭包：
+fn map_closure() {
+    let list_of_numbers = vec![1, 2, 3];
+    // 注意这里必须使用 “高级 trait” 部分讲到的完全限定语法，因为存在多个叫做 to_string 的函数；
+    // 这里使用了定义于 ToString trait 的 to_string 函数，标准库为所有实现了 Display 的类型实现了这个 trait。
+    let list_of_strings: Vec<String> = list_of_numbers.iter().map(ToString::to_string).collect();
+    println!("=== list_of_strings ====== {:?}", list_of_strings);
+}
+
+// 另一个实用的模式暴露了元组结构体和元组结构体枚举成员的实现细节。
+// 这些项使用 () 作为初始化语法，这看起来就像函数调用，同时它们确实被实现为返回由参数构造的实例的函数。
+// 它们也被称为实现了闭包 trait 的函数指针，并可以采用类似如下的方式调用：
+#[derive(Debug)]
+enum Status {
+    Value(u32),
+    Stop,
+}
+
+fn tuple_conv() {
+    // 这里创建了 Status::Value 实例，它通过 map 用范围的每一个 u32 值调用 Status::Value 的初始化函数。
+    // 一些人倾向于函数风格，一些人喜欢闭包。这两种形式最终都会产生同样的代码，所以请使用对你来说更明白的形式吧。
+    let list_of_statuses: Vec<Status> = (0u32..20).map(Status::Value).collect();
+    println!("=== list_of_statuses ====== {:?}", list_of_statuses);
+}
+
+// ------------ 返回闭包 ----------
+// 闭包表现为 trait，这意味着不能直接返回闭包。
+// 对于大部分需要返回 trait 的情况，可以使用实现了期望返回的 trait 的具体类型来替代函数的返回值。
+// 但是这不能用于闭包，因为他们没有一个可返回的具体类型；
+// 例如不允许使用函数指针 fn 作为返回值类型。
+
+// 这段代码尝试直接返回闭包，它并不能编译：
+// fn return_closure() -> Fn(i32) -> i32 {
+//     |x| x+1
+// }
+
+// 错误又一次指向了 Sized trait！Rust 并不知道需要多少空间来储存闭包。
+// 不过我们在上一部分见过这种情况的解决办法：可以使用 trait 对象。
+fn return_closure() -> Box<dyn Fn(i32) -> i32> {
+    Box::new(|x|x+1)
+}
+
+
+// ========================= 宏 =====================
+
+
 
 fn main() {
     raw_pointer();
@@ -822,7 +899,7 @@ fn main() {
     }
     //------
     let a = Context("nihao a");
-    println!("{:?}", parse_context(a));
+    // println!("{:?}", parse_context(a));
     new_Ball();
     add_point();
     //-----
@@ -834,6 +911,11 @@ fn main() {
     };
     p.outline_print();
     set_wrapper();
-
     print_kilometers();
+    // ---------
+    let answer = do_twice(add_one, 5);
+    println!("the answer is: {}", answer);
+    map_conv();
+    map_closure();
+    tuple_conv();
 }
