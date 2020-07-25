@@ -434,7 +434,7 @@ impl Iterator for Counter {
         Some(10)
     }
 }
-pub trait Iterator_1<T> {
+pub trait Iterator1<T> {
     fn next(&mut self) -> Option<T>;
 }
 
@@ -878,13 +878,158 @@ fn tuple_conv() {
 // 错误又一次指向了 Sized trait！Rust 并不知道需要多少空间来储存闭包。
 // 不过我们在上一部分见过这种情况的解决办法：可以使用 trait 对象。
 fn return_closure() -> Box<dyn Fn(i32) -> i32> {
-    Box::new(|x|x+1)
+    Box::new(|x| x + 1)
 }
 
-
 // ========================= 宏 =====================
+// 宏（Macro）指的是 Rust 中一系列的功能：
+// 声明（Declarative）宏，使用 macro_rules!，
+// 和三种 过程（Procedural）宏：
+//   1. 自定义 #[derive] 宏在结构体和枚举上指定通过 derive 属性添加的代码
+//   2. 类属性（Attribute）宏定义可用于任意项的自定义属性
+//   3. 类函数宏看起来像函数不过作用于作为参数传递的 token。
+
+// 从根本上来说，宏是一种为写其他代码而写代码的方式，即所谓的 元编程（metaprogramming）。
+// 在附录 C 中会探讨 derive 属性，其生成各种 trait 的实现。
+// 我们也在本书中使用过 println! 宏和 vec! 宏。
+// 所有的这些宏以 展开 的方式来生成比你所手写出的更多的代码。
+
+// 元编程对于减少大量编写和维护的代码是非常有用的，它也扮演了函数的角色。
+// 但宏有一些函数所没有的附加能力。
+
+// 一个函数标签必须声明函数参数个数和类型。
+// 相比之下，宏只接受一个可变参数：用一个参数调用 println!("hello") 或用两个参数调用 println!("hello {}", name) 。
+// 而且，宏可以在编译器翻译代码前展开，例如，宏可以在一个给定类型上实现 trait 。
+// 而函数则不行，因为函数是在运行时被调用，同时 trait 需要在编译时实现。
+
+// 实现一个宏而不是函数的消极面是宏定义要比函数定义更复杂，因为你正在编写生成 Rust 代码的 Rust 代码。
+// 由于这样的间接性，宏定义通常要比函数定义更难阅读、理解以及维护。
+
+// 宏和函数的最后一个重要的区别是：在调用宏之前必须定义并将其引入作用域，而函数则可以在任何地方定义和调用。
+
+// ----------- 使用 macro_rules!的声明宏用于通用元编程 -----
+// Rust 最常用的宏形式是声明宏（declarative macros）。
+// 它们有时也被称为 “macros by example”、“macro_rules! 宏” 或者就是 “macros”。
+// 其核心概念是，声明宏允许我们编写一些类似 Rust match 表达式的代码。
+// 正如在第六章讨论的那样，match 表达式是控制结构，其接收一个表达式，与表达式的结果进行模式匹配，然后根据模式匹配执行相关代码。
+// 宏也将一个值和包含相关代码的模式进行比较；
+// 此种情况下，该值是传递给宏的 Rust 源代码字面值，模式用于和传递给宏的源代码进行比较，同时每个模式的相关代码则用于替换传递给宏的代码。所有这一切都发生于编译时。
+
+// 可以使用 macro_rules! 来定义宏。
+// 让我们通过查看 vec! 宏定义来探索如何使用 macro_rules!结构。
+// 第八章讲述了如何使用 vec! 宏来生成一个给定值的 vector。
+fn macro_rules() {
+    let v: Vec<u32> = vec![1, 2, 3];
+}
+
+#[cfg(not(test))]
+#[macro_export]
+macro_rules! vec_other {
+    () => (
+        $crate::vec::Vec::new()
+    );
+    ($elem:expr; $n:expr) => (
+        $crate::vec::from_elem($elem, $n)
+    );
+    ($($x:expr),+ $(,)?) => (
+        <[_]>::into_vec(box [$($x),+])
+    );
+}
+
+#[macro_export]
+macro_rules! vec_example {
+    ( $( $x:expr ),* ) => {
+        {
+            let mut temp_vec = Vec::new();
+            $(
+                temp_vec.push($x);
+            )*
+            temp_vec
+        }
+    };
+}
+
+// 无论何时导入定义了宏的包，#[macro_export] 注解说明宏应该是可用的。
+// 如果没有该注解，这个宏不能被引入作用域。
+
+// 接着使用 macro_rules! 和宏名称开始宏定义，且所定义的宏并不带感叹号。
+// 名字后跟大括号表示宏定义体，在该例中宏名称是 vec 。
+
+// vec! 宏的结构和 match 表达式的结构类似。
+// 此处有一个单边模式 ($( $x:expr ),*) ，后跟 => 以及和模式相关的代码块。
+// 如果模式匹配，该相关代码块将被执行。
+// 假设这是这个宏中唯一的模式，则只有这一种有效匹配，其他任何匹配都是错误的。
+// 更复杂的宏会有多个单边模式。
+
+// 宏定义中有效模式语法和在第十八章提及的模式语法是不同的，因为宏模式所匹配的是Rust代码结构而不是值。
+
+// 首先，一对括号包含了全部模式。接下来是后跟一对括号的美元符号（$），其通过替代代码捕获了符合括号内模式的值。$()
+// 内则是 $x:expr ，其匹配 Rust 的任意表达式或给定 $x 名字的表达式。
+
+// $() 之后的逗号说明一个逗号分隔符可以有选择的出现代码之后，这段代码与在 $() 中所捕获的代码相匹配。
+// 紧随逗号之后的 * 说明该模式匹配零个或多个 * 之前的任何模式。
+
+// 当以 vec![1, 2, 3]; 调用宏时，$x 模式与三个表达式 1、2 和 3 进行了三次匹配。
+// 现在让我们来看看这个出现在与此单边模式相关的代码块中的模式：
+// 在 $()* 部分中所生成的 temp_vec.push() 为在匹配到模式中的 $() 每一部分而生成。$
+// x 由每个与之相匹配的表达式所替换。当以 vec![1, 2, 3]; 调用该宏时，替换该宏调用所生成的代码会是下面这样：
+// let mut temp_vec = Vec::new();
+// temp_vec.push(1);
+// temp_vec.push(2);
+// temp_vec.push(3);
+// temp_vec
+
+// macro_rules! 中有一些奇怪的地方。
+// 在将来，会有第二种采用macro关键字的声明宏，其工作方式类似但修复了这些极端情况。
+// 在此之后，macro_rules!实际上就过时（deprecated）了。
+// 在此基础之上，同时鉴于大多数 Rust 程序员使用宏而非编写宏的事实，此处不再深入探讨 macro_rules!。
+// 请查阅在线文档或其他资源，如 “The Little Book of Rust Macros” 来更多地了解如何写宏。
 
 
+// ******************* 用于从属性生成代码的过程宏 **************
+// 第二种形式的宏被称为 过程宏（procedural macros），因为它们更像函数（一种过程类型）。
+// 过程宏接收Rust代码作为输入，在这些代码上进行操作，然后产生另一些代码作为输出，
+// 而非像声明式宏那样匹配对应模式然后以另一部分代码替换当前代码。
+
+// 有三种类型的过程宏（自定义 derive，类属性和类函数），不过它们的工作方式都类似。
+
+// 当创建过程宏时，其定义必须位于一种特殊类型的属于它们自己的 crate 中。
+// 这么做出于复杂的技术原因，将来我们希望能够消除这些限制。
+// 使用这些宏需采用类似示例 19-29 所示的代码形式，其中some_attribute 是一个使用特定宏的占位符。
+
+// use proc_macro;
+// 
+// #[some_attribute]
+// pub fn some_name(input: TokenStream) -> TokenStream {
+// }
+
+// 过程宏包含一个函数，这也是其得名的原因：“过程” 是 “函数” 的同义词。
+// 那么为何不叫 “函数宏” 呢？好吧，有一个过程宏是 “类函数” 的，叫成函数会产生混乱。
+// 无论如何，定义过程宏的函数接受一个 TokenStream 作为输入并产生一个 TokenStream 作为输出。
+// 这也就是宏的核心：宏所处理的源代码组成了输入 TokenStream，同时宏生成的代码是输出 TokenStream。
+// 最后，函数上有一个属性；这个属性表明过程宏的类型。
+// 在同一 crate 中可以有多种的过程宏
+
+
+// -------------- 编写自定义 derive 宏 -----------
+// 让我们创建一个 hello_macro crate，其包含名为 HelloMacro的trait和关联函数hello_macro。
+// 不同于让crate的用户为其每一个类型实现 HelloMacro trait，
+// 我们将会提供一个过程式宏以便用户可以使用 #[derive(HelloMacro)] 注解他们的类型来得到 hello_macro 函数的默认实现。
+// 该默认实现会打印 Hello, Macro! My name is TypeName!，其中 TypeName 为定义了 trait 的类型名。
+// 换言之，我们会创建一个 crate，使程序员能够写类似示例 19-30 中的代码。
+mod hello_macro;
+use hello_macro::HelloMacro;
+
+// use a19_advaced_features::hello_macro_derive::HelloMacro;
+
+// #[derive(HelloMacro)]
+struct Pancakes;
+
+impl HelloMacro for Pancakes {
+    fn hello_macro() {
+        println!("hello, macro!");
+    }
+}
 
 fn main() {
     raw_pointer();
@@ -918,4 +1063,7 @@ fn main() {
     map_conv();
     map_closure();
     tuple_conv();
+    // ---------
+    println!("==========macro==========="); 
+    Pancakes::hello_macro();
 }

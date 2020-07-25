@@ -7,7 +7,7 @@ provider "huaweicloud" {
 }
 
 # Create a VPC
-resource "huaweicloud_vpc_v1" "example" {
-  name = "my_vpc"
-  cidr = "192.168.0.0/16"
-}
+# resource "huaweicloud_vpc_v1" "example" {
+#   name = "my_vpc"
+#   cidr = "192.168.0.0/16"
+# }
